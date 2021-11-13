@@ -7,8 +7,8 @@ En este reto se pretende modelar el comportamiento de los automoviles en un mapa
 ___
 #### Agentes Involucrados: 
 * Automoviles: **Enter**
-  >> Hay un alto &rarr; Quedarse en el mismo lugar 
-  >> Hay un coche en la dirección en la que se dirije  &rarr; Quedarse en el mismo lugar 
-  >> Hay un obstáculo en la dirección en la que se dirije  &rarr; Moverse hacia la dirección de la calle y "rodearlo" siempre intentando regresar a la dorección que lo lleve al destino
+  > Hay un alto &rarr; Quedarse en el mismo lugar 
+  > Hay un coche en la dirección en la que se dirije  &rarr; Quedarse en el mismo lugar 
+  > Hay un obstáculo en la dirección en la que se dirije  &rarr; Moverse hacia la dirección de la calle y "rodearlo" siempre intentando regresar a la dorección que lo lleve al destino
 * Obstáculos:
 * Semáforos:
