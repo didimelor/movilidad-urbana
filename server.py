@@ -1,53 +1,100 @@
-from agent import *
-from model import RandomModel
-from mesa.visualization.modules import CanvasGrid, BarChartModule
-from mesa.visualization.ModularVisualization import ModularServer
+from re import X
+from flask import Flask, request, jsonify
+from model import *
 
-def agent_portrayal(agent):
-    if agent is None: return
-    
-    portrayal = {"Shape": "rect",
-                 "Filled": "true",
-                 "Layer": 1,
-                 "w": 1,
-                 "h": 1
-                 }
+app = Flask("Act int 1 server")
 
-    if (isinstance(agent, Road)):
-        portrayal["Color"] = "grey"
-        portrayal["Layer"] = 0
-    
-    if (isinstance(agent, Destination)):
-        portrayal["Color"] = "lightgreen"
-        portrayal["Layer"] = 0
+numberRobots = 5
+floorWidth = 15
+floorHeight = 15
+density = 0.65
+trafficModel = None
+baseX = 0
+baseZ = 0
+counter = 0
 
-    if (isinstance(agent, Traffic_Light)):
-        portrayal["Color"] = "red" if not agent.state else "green"
-        portrayal["Layer"] = 0
-        portrayal["w"] = 0.8
-        portrayal["h"] = 0.8
+#Create the flask server
+@app.route("/")
+def default():
+    print("Recieved a requests at /")
+    return "Inital connection successful!"
 
-    if (isinstance(agent, Obstacle)):
-        portrayal["Color"] = "cadetblue"
-        portrayal["Layer"] = 0
-        portrayal["w"] = 0.8
-        portrayal["h"] = 0.8
+@app.route('/init', methods=['POST', 'GET'])
+def initModel():
+    global trafficModel, numberRobots, floorWidth, floorHeight, baseX, baseZ, density
 
-    return portrayal
+    if request.method == 'POST':
+        number_agents = int(request.form.get('numberAgents'))
 
-width = 0
-height = 0
+        print(request.form)
+        print(number_agents)
+        trafficModel = RandomModel(number_agents)
 
-with open('base.txt') as baseFile:
-    lines = baseFile.readlines()
-    width = len(lines[0])-1
-    height = len(lines)
+        return jsonify({"message":"Parameters recieved, model initiated."})
 
-model_params = {"N":5}
+@app.route('/getAgents', methods=['GET'])
+def getAgents():
+    global trafficModel
 
-grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+    if request.method == 'GET':
+        #carPositions = [{"x": x, "y":0, "z":z} for (a, x, z) in trafficModel.grid.coord_iter() if isinstance(a, cargador)]
+        carPositions = []
+        for (c, x, z) in trafficModel.grid.coord_iter():
+            for contents in c:
+                if(isinstance(contents, Car)):
+                    print("Found a car")
+                    carPositions.append({"x":x, "y":0.18, "z":z})
 
-server = ModularServer(RandomModel, [grid], "Traffic Base", model_params)
-                       
-server.port = 8521 # The default
-server.launch()
+        return jsonify({'positions':carPositions})
+
+@app.route('/getTrafficLightsPos', methods=['GET'])
+def getTrafficLightsPos():
+    global trafficModel
+
+    if request.method == 'GET':
+        #boxPositions = [{"x": x, "y":0, "z":z} for (a, x, z) in trafficModel.grid.get_cell_list_contents() if isinstance(a, caja)]
+        trafficLightPositions = []
+        trafficLightStates = []
+        for (c, x, z) in trafficModel.grid.coord_iter():
+            for contents in c:
+                if(isinstance(contents, Traffic_Light)):
+                    trafficLightPositions.append({"x":x, "y":0, "z":z})
+                    trafficLightStates.append(contents.state)
+
+        return jsonify({'positions':trafficLightPositions, "states": trafficLightStates})
+        
+@app.route('/getTrafficLightsState', methods=['GET'])
+def getTrafficLightsState():
+    global trafficModel
+
+    if request.method == 'GET':
+        #boxPositions = [{"x": x, "y":0, "z":z} for (a, x, z) in trafficModel.grid.get_cell_list_contents() if isinstance(a, caja)]
+        trafficLightStates = []
+        for (c, x, z) in trafficModel.grid.coord_iter():
+            for contents in c:
+                if(isinstance(contents, Traffic_Light)):
+                    trafficLightStates.append(contents.state)
+
+        return jsonify({'states':trafficLightStates})
+
+@app.route('/update', methods=['GET'])
+def updateModel():
+    global counter, trafficModel
+    if request.method == 'GET':
+        trafficModel.step()
+        counter += 1
+        return jsonify({'message':f'Model updated to step {counter}.', 'currentStep':counter})
+
+@app.route('/getModelSteps', methods=['GET'])
+def getState():
+    global trafficModel
+    if request.method == 'GET':
+        steps = trafficModel.getSteps()
+        return jsonify({'steps':steps})
+        """ state = trafficModel.getState()
+        return jsonify({'isDone':state}) """
+
+""" if __name__=='__main__':
+    app.run(host="localhost", port=8585, debug=True) """
+
+app.run()
