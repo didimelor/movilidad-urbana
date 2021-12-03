@@ -53,6 +53,7 @@ public class AgentController : MonoBehaviour
      // Pause the simulation while we get the update from the server
     bool hold = true;
     bool holdTrafficLights = false;
+    bool holdFirstLights = true;
 
     public float timer, dt;
 
@@ -90,7 +91,7 @@ public class AgentController : MonoBehaviour
         dt = t * t * ( 3f - 2f*t);
 
         // Smooth out the transition at start and end
-        if (timer >= updateDelay){
+        if (timer >= updateDelay && !holdFirstLights){
             timer = 0;
             hold = true;
             holdTrafficLights = true;
@@ -104,12 +105,16 @@ public class AgentController : MonoBehaviour
             {   
                 if (newPositions.Count > 0 && oldPositions.Count > 0)
                 {
-                    /* Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
-                    agents[s].transform.localPosition = interpolated; */
-                    agents[s].transform.localPosition = newPositions[s]; //Movement in "skips"
+                    //Interpolated
+                    Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
+                    agents[s].transform.localPosition = interpolated;
+                    //Movement in "skips"
+                    //agents[s].transform.localPosition = newPositions[s]; 
                     
-                    Vector3 dir = oldPositions[s] - newPositions[s];
-                    agents[s].transform.rotation = Quaternion.LookRotation(dir);
+                    Vector3 dir = newPositions[s] - oldPositions[s];
+                    if (dir != Vector3.zero){
+                        agents[s].transform.rotation = Quaternion.LookRotation(dir);
+                    }
                 }
             }
 
@@ -160,8 +165,8 @@ public class AgentController : MonoBehaviour
         if (www.result == UnityWebRequest.Result.Success){
             Debug.Log(www.downloadHandler.text);
             StartCoroutine(GetTrafficLightsData());
-            StartCoroutine(UpdateTrafficLights());
-            //StartCoroutine(GetCarsData());
+            //StartCoroutine(UpdateTrafficLights());
+            StartCoroutine(GetCarsData());
         }
         else{
             Debug.Log(www.error);
@@ -175,9 +180,7 @@ public class AgentController : MonoBehaviour
         if (www.result == UnityWebRequest.Result.Success){
             Debug.Log(www.downloadHandler.text);
             modelSteps = JsonUtility.FromJson<ModelState>(www.downloadHandler.text);
-            if (modelSteps.steps%10 == 0){
-                StartCoroutine(UpdateTrafficLights());
-            }
+            StartCoroutine(UpdateTrafficLights());
             StartCoroutine(GetCarsData());
         }
         else{
@@ -210,7 +213,7 @@ public class AgentController : MonoBehaviour
 
     //Instantiates all trafficLights and asigns them inside the trafficLights array
     IEnumerator GetTrafficLightsData() 
-    {
+    {   
         UnityWebRequest www = UnityWebRequest.Get(url + trafficLightsEP);
         yield return www.SendWebRequest();
  
@@ -232,6 +235,7 @@ public class AgentController : MonoBehaviour
                     trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.identity);
                     trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.green;
                 }
+                holdFirstLights = false;
             }
         }
     }
@@ -249,10 +253,8 @@ public class AgentController : MonoBehaviour
             //Green: 00B001
             //Red: FF0009
             trafficLightsData = JsonUtility.FromJson<TrafficLightsData>(www.downloadHandler.text);
-
             //Updates the colors of the traffic lights according to the state in the mesa model
             for (int i = 0; i < trafficLightsData.states.Count; i++){
-                //Debug.Log(trafficLightsData.states[i]);
                 if (trafficLightsData.states[i] == false){ //Vertical, starts in red, "S"
                     trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.red;
                 }

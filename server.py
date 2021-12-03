@@ -1,6 +1,7 @@
 from re import X
 from flask import Flask, request, jsonify
 from model import *
+import os
 
 app = Flask("Act int 1 server")
 
@@ -25,10 +26,10 @@ def initModel():
 
     if request.method == 'POST':
         number_agents = int(request.form.get('numberAgents'))
+        trafficModel = RandomModel(number_agents)
 
         print(request.form)
         print(number_agents)
-        trafficModel = RandomModel(number_agents)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
 
@@ -97,4 +98,6 @@ def getState():
 """ if __name__=='__main__':
     app.run(host="localhost", port=8585, debug=True) """
 
-app.run()
+#app.run()
+port = int(os.getenv('PORT', 8080))
+app.run(host='0.0.0.0', port=port, debug=True)
