@@ -351,7 +351,7 @@ MonoBehaviour:
   trafficLightsStateEP: /getTrafficLightsState
   stateEP: /getModelState
   updateDelay: 1
-  carPrefab: {fileID: 3637084725327645170, guid: 0579614f4b40ae043b3a47168301e90a, type: 3}
+  carPrefab: {fileID: 7809911091796934675, guid: c62c8eeef3428bd40964d3b27ee97a00, type: 3}
   trafficLightsPrefab: {fileID: 8102729382312259521, guid: ec03db3fda9c46458bf4fb4f61cc11bd, type: 3}
   numAgents: 1
   MainCamera: {fileID: 136675313}

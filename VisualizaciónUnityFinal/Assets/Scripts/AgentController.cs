@@ -106,10 +106,10 @@ public class AgentController : MonoBehaviour
                 if (newPositions.Count > 0 && oldPositions.Count > 0)
                 {
                     //Interpolated
-                    Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
-                    agents[s].transform.localPosition = interpolated;
+                    /* Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
+                    agents[s].transform.localPosition = interpolated; */
                     //Movement in "skips"
-                    //agents[s].transform.localPosition = newPositions[s]; 
+                    agents[s].transform.localPosition = newPositions[s]; 
                     
                     Vector3 dir = newPositions[s] - oldPositions[s];
                     if (dir != Vector3.zero){
