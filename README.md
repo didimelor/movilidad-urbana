@@ -18,4 +18,5 @@ ___
 * Semáforos:
 > Pasó el tiempo máximo en estado rojo &rarr; Se cambia a estado verde
 
+___
 Explicación en video: https://youtu.be/vANPKpjw-lY
