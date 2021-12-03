@@ -1,3 +1,4 @@
+from enum import unique
 from re import X
 from flask import Flask, request, jsonify
 from model import *
@@ -40,12 +41,18 @@ def getAgents():
     if request.method == 'GET':
         #carPositions = [{"x": x, "y":0, "z":z} for (a, x, z) in trafficModel.grid.coord_iter() if isinstance(a, cargador)]
         carPositions = []
+        carId = {}
         for (c, x, z) in trafficModel.grid.coord_iter():
             for contents in c:
                 if(isinstance(contents, Car)):
                     print("Found a car")
-                    carPositions.append({"x":x, "y":0.18, "z":z})
+                    carId[contents.unique_id] = {"x":x, "y":0.18, "z":z}
+        
+        sorted(carId)
 
+        for i in carId:
+            carPositions.append(carId[i])
+            
         return jsonify({'positions':carPositions})
 
 @app.route('/getTrafficLightsPos', methods=['GET'])
@@ -95,9 +102,5 @@ def getState():
         """ state = trafficModel.getState()
         return jsonify({'isDone':state}) """
 
-""" if __name__=='__main__':
-    app.run(host="localhost", port=8585, debug=True) """
-
-#app.run()
 port = int(os.getenv('PORT', 8080))
 app.run(host='0.0.0.0', port=port, debug=True)

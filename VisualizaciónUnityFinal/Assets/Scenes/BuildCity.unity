@@ -200,7 +200,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 136675311}
   m_LocalRotation: {x: 0.6019544, y: 0, z: 0, w: 0.7985305}
-  m_LocalPosition: {x: 12, y: 20.72, z: 3.5}
+  m_LocalPosition: {x: 12, y: 20.72, z: 4.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -353,7 +353,7 @@ MonoBehaviour:
   updateDelay: 1
   carPrefab: {fileID: 7809911091796934675, guid: c62c8eeef3428bd40964d3b27ee97a00, type: 3}
   trafficLightsPrefab: {fileID: 8102729382312259521, guid: ec03db3fda9c46458bf4fb4f61cc11bd, type: 3}
-  numAgents: 1
+  numAgents: 10
   MainCamera: {fileID: 136675313}
   timer: 0
   dt: 0

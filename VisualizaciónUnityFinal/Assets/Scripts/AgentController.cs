@@ -47,9 +47,12 @@ public class AgentController : MonoBehaviour
     [SerializeField] Camera MainCamera;
     Camera mainCamera;
     GameObject[] agents;
+    GameObject[] newAgents; //Used to initialize new agents during the simulation
     GameObject[] trafficLights;
     List<Vector3> oldPositions;
     List<Vector3> newPositions;
+    int oldCarCount, newCarCount;
+
      // Pause the simulation while we get the update from the server
     bool hold = true;
     bool holdTrafficLights = false;
@@ -71,13 +74,15 @@ public class AgentController : MonoBehaviour
         oldPositions = new List<Vector3>();
         newPositions = new List<Vector3>();
 
-        agents = new GameObject[1];
+        agents = new GameObject[numAgents];
 
         timer = updateDelay;
 
         for(int i = 0; i < numAgents; i++){
             agents[i] = Instantiate(carPrefab, Vector3.zero, Quaternion.identity);
         }
+        //Keeps track of the original number of cars, because more are added later during the simulation
+        oldCarCount = numAgents;
 
         StartCoroutine(TestConnection());
         StartCoroutine(SendConfiguration());
@@ -112,7 +117,8 @@ public class AgentController : MonoBehaviour
                     agents[s].transform.localPosition = newPositions[s]; 
                     
                     Vector3 dir = newPositions[s] - oldPositions[s];
-                    if (dir != Vector3.zero){
+
+                    if (dir != Vector3.zero || newPositions[s] != oldPositions[s]){
                         agents[s].transform.rotation = Quaternion.LookRotation(dir);
                     }
                 }
@@ -197,8 +203,47 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else 
         {
-            carsData = JsonUtility.FromJson<AgentData>(www.downloadHandler.text);
 
+            carsData = JsonUtility.FromJson<AgentData>(www.downloadHandler.text);
+            
+            //Hacer sort de carsData de acuerdo su ID
+
+            //Used to check if more cars have been added since the last simulation step
+            newCarCount = carsData.positions.Count;
+
+            /* if (oldCarCount != newCarCount){ //If a car has been added
+                //Makes an array with the updated size
+                newAgents = new GameObject[newCarCount];
+
+                //Adds all the current cars to the new array
+                for (int i = 0; i < agents.Length; i++){
+                    newAgents[i] = agents[i];
+                }
+
+                // Store the old positions for each agent
+                foreach(Vector3 v in carsData.positions)
+                    newPositions.Add(v);
+                oldPositions = new List<Vector3>(newPositions);
+
+                newPositions.Clear();
+                //Gets the updated positions
+                foreach(Vector3 v in carsData.positions)
+                    newPositions.Add(v);
+                
+                //Adds the new car in its new position
+                newAgents[newCarCount - 1] = Instantiate(carPrefab, newPositions[newCarCount - 1], Quaternion.identity);
+
+                agents = newAgents;
+            }else{
+                // Store the old positions for each agent
+                oldPositions = new List<Vector3>(newPositions);
+
+                newPositions.Clear();
+
+                foreach(Vector3 v in carsData.positions)
+                    newPositions.Add(v);
+            }
+ */
             // Store the old positions for each agent
             oldPositions = new List<Vector3>(newPositions);
 
@@ -228,11 +273,11 @@ public class AgentController : MonoBehaviour
             for (int i = 0; i < trafficLightsData.positions.Count; i++){
                 Vector3 newPosition = trafficLightsData.positions[i];
                 if (trafficLightsData.states[i] == false){ //Vertical, starts in red, "S"
-                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.Euler(0, 90, 0));
+                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.identity);
                     trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.red;
                 }
                 else{
-                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.identity);
+                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.Euler(0, 90, 0));
                     trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.green;
                 }
                 holdFirstLights = false;
