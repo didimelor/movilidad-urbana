@@ -30,13 +30,13 @@ public class CityMaker : MonoBehaviour
         // and move down
         // Remove the last enter, and one more to start at 0
         int y = tiles.Split('\n').Length - 2;
-        Debug.Log(y);
+        //Debug.Log(y);
 
         Vector3 position;
         GameObject tile;
 
         for (int i=0; i<tiles.Length; i++) {
-            if (tiles[i] == '>' || tiles[i] == '<') {
+            if (tiles[i] == '>' || tiles[i] == '<' || tiles[i] == 'x' ) {
                 position = new Vector3(x * tileSize, 0, y * tileSize);
                 tile = Instantiate(roadPrefab, position, Quaternion.identity);
                 tile.transform.parent = transform;
@@ -46,19 +46,19 @@ public class CityMaker : MonoBehaviour
                 tile = Instantiate(roadPrefab, position, Quaternion.Euler(0, 90, 0));
                 tile.transform.parent = transform;
                 x += 1;
-            } else if (tiles[i] == 's') {
+            } else if (tiles[i] == 's') { //Starts in green, horizontal
                 position = new Vector3(x * tileSize, 0, y * tileSize);
                 tile = Instantiate(roadPrefab, position, Quaternion.identity);
                 tile.transform.parent = transform;
-                tile = Instantiate(semaphorePrefab, position, Quaternion.identity);
-                tile.transform.parent = transform;
+                /* tile = Instantiate(semaphorePrefab, position, Quaternion.identity);
+                tile.transform.parent = transform; */
                 x += 1;
-            } else if (tiles[i] == 'S') {
+            } else if (tiles[i] == 'S') { //Starts in false, vertical
                 position = new Vector3(x * tileSize, 0, y * tileSize);
                 tile = Instantiate(roadPrefab, position, Quaternion.Euler(0, 90, 0));
                 tile.transform.parent = transform;
-                tile = Instantiate(semaphorePrefab, position, Quaternion.Euler(0, 90, 0));
-                tile.transform.parent = transform;
+                /* tile = Instantiate(semaphorePrefab, position, Quaternion.Euler(0, 90, 0));
+                tile.transform.parent = transform; */
                 x += 1;
             } else if (tiles[i] == 'D') {
                 position = new Vector3(x * tileSize, 0, y * tileSize);

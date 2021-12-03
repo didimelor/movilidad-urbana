@@ -1,10 +1,4 @@
-﻿// TC2008B. Sistemas Multiagentes y Gráficas Computacionales
-// C# client to interact with Python. Based on the code provided by Sergio Ruiz.
-// Octavio Navarro. October 2021
-
-//Warhog street level = 0.17
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -17,121 +11,186 @@ public class CarData
     public Vector3 position;
 }
 
-public class AgentData
-{
+public class AgentData{
     public List<Vector3> positions;
 }
 
+public class TrafficLightsData{
+    public List<Vector3> positions;
+    public List<bool> states;
+}
+
+public class ModelState{
+    public string message;
+    public int steps;
+}
+
 public class AgentController : MonoBehaviour
-{
-    // private string url = "https://boids.us-south.cf.appdomain.cloud/";
-    string serverUrl = "http://localhost:8585";
-    string getAgentsEndpoint = "/getAgents";
-    string getObstaclesEndpoint = "/getObstacles";
-    string sendConfigEndpoint = "/init";
-    string updateEndpoint = "/update";
-    AgentData carsData, obstacleData;
+{  
+    //Server paramaters
+    [SerializeField] string url;
+    [SerializeField] string testEP;
+    [SerializeField] string initEP;
+    [SerializeField] string updateEP;
+    [SerializeField] string agentsEP;
+    [SerializeField] string trafficLightsEP;
+    [SerializeField] string trafficLightsStateEP;
+    [SerializeField] string stateEP;
+
+    //Model parameters
+    [SerializeField] float updateDelay; //In seconds
+    [SerializeField] GameObject carPrefab;
+    [SerializeField] GameObject trafficLightsPrefab;
+    [SerializeField] int numAgents;
+    
+    //Unity parameters
+    [SerializeField] Camera MainCamera;
+    Camera mainCamera;
     GameObject[] agents;
+    GameObject[] trafficLights;
     List<Vector3> oldPositions;
     List<Vector3> newPositions;
-    // Pause the simulation while we get the update from the server
-    bool hold = false;
+     // Pause the simulation while we get the update from the server
+    bool hold = true;
+    bool holdTrafficLights = false;
+    bool holdFirstLights = true;
 
-    public GameObject carPrefab, obstaclePrefab, floor;
-    public int NAgents, width, height;
-    public float timeToUpdate = 5.0f, timer, dt;
+    public float timer, dt;
 
+    //float updateTime = 0;
+    AgentData carsData; 
+    TrafficLightsData trafficLightsData;
+    ModelState modelSteps;
+
+    // Start is called before the first frame update
     void Start()
-    {
+    {   
+        modelSteps = new ModelState();
         carsData = new AgentData();
-        obstacleData = new AgentData();
+        trafficLightsData = new TrafficLightsData();
         oldPositions = new List<Vector3>();
         newPositions = new List<Vector3>();
 
-        agents = new GameObject[NAgents];
+        agents = new GameObject[1];
 
-        floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
-        floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
-        
-        timer = timeToUpdate;
+        timer = updateDelay;
 
-        for(int i = 0; i < NAgents; i++)
+        for(int i = 0; i < numAgents; i++){
             agents[i] = Instantiate(carPrefab, Vector3.zero, Quaternion.identity);
-            
+        }
+
+        StartCoroutine(TestConnection());
         StartCoroutine(SendConfiguration());
     }
 
-    private void Update() 
-    {
-        float t = timer/timeToUpdate;
+    // Update is called once per frame
+    void Update()
+    {   
+        float t = timer/updateDelay;
         // Smooth out the transition at start and end
         dt = t * t * ( 3f - 2f*t);
 
-        if(timer >= timeToUpdate)
-        {
+        // Smooth out the transition at start and end
+        if (timer >= updateDelay && !holdFirstLights){
             timer = 0;
             hold = true;
-            StartCoroutine(UpdateSimulation());
+            holdTrafficLights = true;
+            //StartCoroutine(GetModelState()); //Checks if the model is done
+            StartCoroutine(UpdatePositions()); //Moves agents and trafficLights
         }
 
-        if (!hold)
-        {
+        if(!hold && !holdTrafficLights){
+            //Moves agents
             for (int s = 0; s < agents.Length; s++)
-            {
-                Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
-                agents[s].transform.localPosition = interpolated;
-                
-                Vector3 dir = oldPositions[s] - newPositions[s];
-                agents[s].transform.rotation = Quaternion.LookRotation(dir);
-                
+            {   
+                if (newPositions.Count > 0 && oldPositions.Count > 0)
+                {
+                    //Interpolated
+                    /* Vector3 interpolated = Vector3.Lerp(oldPositions[s], newPositions[s], dt);
+                    agents[s].transform.localPosition = interpolated; */
+                    //Movement in "skips"
+                    agents[s].transform.localPosition = newPositions[s]; 
+                    
+                    Vector3 dir = newPositions[s] - oldPositions[s];
+                    if (dir != Vector3.zero){
+                        agents[s].transform.rotation = Quaternion.LookRotation(dir);
+                    }
+                }
             }
-            // Move time from the last frame
+
             timer += Time.deltaTime;
         }
     }
- 
-    IEnumerator UpdateSimulation()
-    {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + updateEndpoint);
+
+    IEnumerator TestConnection(){
+        UnityWebRequest www = UnityWebRequest.Get(url + testEP);
         yield return www.SendWebRequest();
- 
-        if (www.result != UnityWebRequest.Result.Success)
+
+        if (www.result == UnityWebRequest.Result.Success){
+            Debug.Log(www.downloadHandler.text);
+        }
+        else{
             Debug.Log(www.error);
-        else 
-        {
-            StartCoroutine(GetCarsData());
         }
     }
 
-    IEnumerator SendConfiguration()
-    {
-        WWWForm form = new WWWForm();
-
-        form.AddField("NAgents", NAgents.ToString());
-        form.AddField("width", width.ToString());
-        form.AddField("height", height.ToString());
-
-        UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
-        www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
+    IEnumerator GetModelState(){
+        UnityWebRequest www = UnityWebRequest.Get(url + stateEP);
         yield return www.SendWebRequest();
 
-        if (www.result != UnityWebRequest.Result.Success)
-        {
+        if (www.result == UnityWebRequest.Result.Success){
+            /* isDone = JsonUtility.FromJson<ModelState>(www.downloadHandler.text);
+
+            if (isDone.isDone == true)
+            {
+                Debug.Log("Model done");
+            } */
+        }
+        else{
             Debug.Log(www.error);
         }
-        else
-        {
-            Debug.Log("Configuration upload complete!");
-            Debug.Log("Getting Agents positions");
+    }
+
+    IEnumerator SendConfiguration(){
+
+        WWWForm form = new WWWForm();
+        //Sends the variables given in Unity, to the model
+        //form.AddField("floorWidth", floorWidth.ToString());
+        //form.AddField("floorHeight", floorHeight.ToString());
+        form.AddField("numberAgents", numAgents.ToString());
+
+        UnityWebRequest www = UnityWebRequest.Post(url + initEP, form);
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success){
+            Debug.Log(www.downloadHandler.text);
+            StartCoroutine(GetTrafficLightsData());
+            //StartCoroutine(UpdateTrafficLights());
             StartCoroutine(GetCarsData());
-            StartCoroutine(GetObstacleData());
+        }
+        else{
+            Debug.Log(www.error);
+        }
+    }
+
+    IEnumerator UpdatePositions(){
+        UnityWebRequest www = UnityWebRequest.Get(url + updateEP);
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success){
+            Debug.Log(www.downloadHandler.text);
+            modelSteps = JsonUtility.FromJson<ModelState>(www.downloadHandler.text);
+            StartCoroutine(UpdateTrafficLights());
+            StartCoroutine(GetCarsData());
+        }
+        else{
+            Debug.Log(www.error);
         }
     }
 
     IEnumerator GetCarsData() 
     {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
+        UnityWebRequest www = UnityWebRequest.Get(url + agentsEP);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
@@ -152,23 +211,68 @@ public class AgentController : MonoBehaviour
         }
     }
 
-    IEnumerator GetObstacleData() 
-    {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
+    //Instantiates all trafficLights and asigns them inside the trafficLights array
+    IEnumerator GetTrafficLightsData() 
+    {   
+        UnityWebRequest www = UnityWebRequest.Get(url + trafficLightsEP);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else 
         {
-            obstacleData = JsonUtility.FromJson<AgentData>(www.downloadHandler.text);
+            trafficLightsData = JsonUtility.FromJson<TrafficLightsData>(www.downloadHandler.text);
+            trafficLights = new GameObject[trafficLightsData.positions.Count];;
 
-            Debug.Log(obstacleData.positions);
-
-            foreach(Vector3 position in obstacleData.positions)
-            {
-                Instantiate(obstaclePrefab, position, Quaternion.identity);
+            //Instantiates each traffic light and sets its initial color
+            for (int i = 0; i < trafficLightsData.positions.Count; i++){
+                Vector3 newPosition = trafficLightsData.positions[i];
+                if (trafficLightsData.states[i] == false){ //Vertical, starts in red, "S"
+                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.Euler(0, 90, 0));
+                    trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.red;
+                }
+                else{
+                    trafficLights[i] = Instantiate(trafficLightsPrefab, newPosition, Quaternion.identity);
+                    trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.green;
+                }
+                holdFirstLights = false;
             }
+        }
+    }
+
+    //Updates traffic light colors
+    IEnumerator UpdateTrafficLights() 
+    {
+        UnityWebRequest www = UnityWebRequest.Get(url + trafficLightsEP);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            //Green: 00B001
+            //Red: FF0009
+            trafficLightsData = JsonUtility.FromJson<TrafficLightsData>(www.downloadHandler.text);
+            //Updates the colors of the traffic lights according to the state in the mesa model
+            for (int i = 0; i < trafficLightsData.states.Count; i++){
+                if (trafficLightsData.states[i] == false){ //Vertical, starts in red, "S"
+                    trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.red;
+                }
+                else{
+                    trafficLights[i].transform.Find("Spot Light").GetComponent<Light>().color = Color.green;
+                }
+            }
+
+            holdTrafficLights = false;
+        }
+    }
+
+    int isBiggest(int width, int height){
+        if(width > height){
+            return width;
+        }
+        else{
+            return height;
         }
     }
 }

@@ -4,6 +4,8 @@ from mesa.space import MultiGrid
 from agent import *
 import json
 
+
+
 class RandomModel(Model):
     """ 
     Creates a new model with random agents.
@@ -11,7 +13,11 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
+
     def __init__(self, N):
+
+        destinationsList = []
+        roadList = []
 
         dataDictionary = json.load(open("mapDictionary.txt"))
 
@@ -25,7 +31,8 @@ class RandomModel(Model):
 
             for r, row in enumerate(lines):
                 for c, col in enumerate(row):
-                    if col in ["v", "^", ">", "<"]:
+                    if col in ["v", "^", ">", "<", "x"]:
+                        roadList.append((r,c))
                         agent = Road(f"r{r*self.width+c}", self, dataDictionary[col])
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col in ["S", "s"]:
@@ -37,7 +44,13 @@ class RandomModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col == "D":
                         agent = Destination(f"d{r*self.width+c}", self)
+                        destinationsList.append((r,c))
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+
+        carPos = (random.choice(roadList))
+        agent = Car(1001, (random.choice(destinationsList)), carPos, self)
+        self.grid.place_agent(agent, carPos)
+        self.schedule.add(agent)
 
         self.num_agents = N
         self.running = True 
@@ -47,6 +60,11 @@ class RandomModel(Model):
         self.schedule.step()
         if self.schedule.steps % 10 == 0:
             for agents, x, y in self.grid.coord_iter():
+                #Aqui se añaden carritos con su dest (base)
                 for agent in agents:
                     if isinstance(agent, Traffic_Light):
                         agent.state = not agent.state
+    def getSteps(self):
+        return self.schedule.steps
+
+

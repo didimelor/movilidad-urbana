@@ -199,13 +199,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 136675311}
-  m_LocalRotation: {x: 0.42261827, y: 0, z: 0, w: 0.9063079}
-  m_LocalPosition: {x: 12, y: 10, z: -1.5}
+  m_LocalRotation: {x: 0.6019544, y: 0, z: 0, w: 0.7985305}
+  m_LocalPosition: {x: 12, y: 20.72, z: 3.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 50, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 74.02, y: 0, z: 0}
 --- !u!1 &395527429
 GameObject:
   m_ObjectHideFlags: 0
@@ -308,6 +308,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1132510122}
+  - component: {fileID: 1132510123}
   m_Layer: 0
   m_Name: AgentManager
   m_TagString: Untagged
@@ -329,6 +330,33 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1132510123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1132510121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 983bc179e80f15347a79dd7b044746e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  url: https://roombafinal-exhausted-alligator-dc.mybluemix.net
+  testEP: /
+  initEP: /init
+  updateEP: /update
+  agentsEP: /getAgents
+  trafficLightsEP: /getTrafficLightsPos
+  trafficLightsStateEP: /getTrafficLightsState
+  stateEP: /getModelState
+  updateDelay: 1
+  carPrefab: {fileID: 7809911091796934675, guid: c62c8eeef3428bd40964d3b27ee97a00, type: 3}
+  trafficLightsPrefab: {fileID: 8102729382312259521, guid: ec03db3fda9c46458bf4fb4f61cc11bd, type: 3}
+  numAgents: 1
+  MainCamera: {fileID: 136675313}
+  timer: 0
+  dt: 0
 --- !u!1 &1457529882
 GameObject:
   m_ObjectHideFlags: 0
