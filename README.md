@@ -17,3 +17,5 @@ ___
 * Obstáculos
 * Semáforos:
 > Pasó el tiempo máximo en estado rojo &rarr; Se cambia a estado verde
+
+Explicación en video: https://youtu.be/vANPKpjw-lY
