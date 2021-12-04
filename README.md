@@ -27,6 +27,9 @@ Hay un obstáculo |  | No se muevo hacia el obstáculo |
 No hay un obstáculo | Elige la posisión más cercana por cada possible_step. La dirección de la calle tiene que ser congrunte con la dirección elegida para acercarse al destino. | Decide si le conviene moverse ahí con base en las condiciones anteriores|
 ___
 #### ¿Cómo funcionan los coches?:
+> Se mueven a la posición valida que más se acerque a su destino. 
+> Tienen un diccionario de desitions. Cada vez que elijan entre tres posiciones válidas guardan su decisión, si vuelven a pasar por ahí y hacen la decision y tienen otras disponibles, le da prioridad a las otras para evitar loops.
+> Por último, siempre tiene que tener congruencia la dirección elejida con la dirección de la calle. De otra manera se invalida la decisión.
 ___
 #### ¿Cómo se puede optimizar el comportamiento de los coches?:
 
