@@ -14,7 +14,7 @@ ___
 
 > Pasó el tiempo máximo en estado rojo &rarr; Se cambia a estado verde
 
-
+* Coches:
 Sensado | Condiciones | Acciones |
 --- | --- | --- | 
 Estoy en destino |  | No se mueve por que ya llegó | 
