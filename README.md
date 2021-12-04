@@ -17,12 +17,12 @@ ___
 
 Sensado | Condiciones | Acciones |
 --- | --- | --- | 
-Estoy en destino | 301 | No se mueve por que ya llegó | 
---- | --- | --- | 
-Mi destino esta en Possible_steps | 301 | Se mueve hacia el destino |
---- | --- | --- | 
-Hay un obstáculo | 301 | No me muevo hacia el obstáculo |
---- | --- | --- | 
+Estoy en destino |  | No se mueve por que ya llegó | 
+
+Mi destino esta en Possible_steps |  | Se mueve hacia el destino |
+
+Hay un obstáculo |  | No me muevo hacia el obstáculo |
+
 No hay un obstáculo | Elige la posisión más cercana por cada possible_step. La dirección de la calle tiene que ser congrunte con la dirección elegida para acercarse al destino. | Decide si le conviene moverse ahí con base en las condiciones anteriores|
 ___
 #### Explicación en video:
