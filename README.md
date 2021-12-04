@@ -6,17 +6,24 @@ ___
 En este reto se pretende modelar el comportamiento de los automoviles en un mapa en la ciudad. Para esto se utiliza Mesa para el comportamiento multiagente en Python. Y los gráficos se modelan en Unity a partir de Flask.
 ___
 #### Agentes Involucrados: 
-* Automoviles: 
-  > El semáforo se encuentra en rojo &rarr; Quedarse en el mismo lugar 
-  
-  > Hay un coche en la dirección en la que se dirije  &rarr; Quedarse en el mismo lugar 
-  
-  > Hay un obstáculo en la dirección en la que se dirije  &rarr; Moverse hacia la dirección de la calle y "rodearlo" siempre intentando regresar a la dirección que lo lleve al destino.
-  
-  > Iteraciones intentando ir a la dirección deseada se excedieron -> ir a dirección random.
-* Obstáculos
+* Obstáculos:
+
+> Osbtáculos, Semaforos en rojo y otros coches
+
 * Semáforos:
+
 > Pasó el tiempo máximo en estado rojo &rarr; Se cambia a estado verde
 
+
+Sensado | Condiciones | Acciones |
+--- | --- | --- | 
+Estoy en destino | 301 | No se mueve por que ya llegó | 
+--- | --- | --- | 
+Mi destino esta en Possible_steps | 301 | Se mueve hacia el destino |
+--- | --- | --- | 
+Hay un obstáculo | 301 | No me muevo hacia el obstáculo |
+--- | --- | --- | 
+No hay un obstáculo | Elige la posisión más cercana por cada possible_step. La dirección de la calle tiene que ser congrunte con la dirección elegida para acercarse al destino. | Decide si le conviene moverse ahí con base en las condiciones anteriores|
 ___
-Explicación en video: https://youtu.be/vANPKpjw-lY
+#### Explicación en video:
+> https://youtu.be/vANPKpjw-lY
