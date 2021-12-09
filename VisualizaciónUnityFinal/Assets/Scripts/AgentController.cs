@@ -267,7 +267,7 @@ public class AgentController : MonoBehaviour
         else 
         {
             trafficLightsData = JsonUtility.FromJson<TrafficLightsData>(www.downloadHandler.text);
-            trafficLights = new GameObject[trafficLightsData.positions.Count];;
+            trafficLights = new GameObject[trafficLightsData.positions.Count];
 
             //Instantiates each traffic light and sets its initial color
             for (int i = 0; i < trafficLightsData.positions.Count; i++){

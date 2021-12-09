@@ -4,8 +4,6 @@ from mesa.space import MultiGrid
 from agent import *
 import json
 
-
-
 class RandomModel(Model):
     """ 
     Creates a new model with random agents.
@@ -26,17 +24,25 @@ class RandomModel(Model):
             self.width = len(lines[0])-1
             self.height = len(lines)
 
+            self.ids = set ({(-1)})
+            self.roadList = []
+            self.destinationsList = []
+
             self.grid = MultiGrid(self.width, self.height,torus = False) 
             self.schedule = RandomActivation(self)
 
             for r, row in enumerate(lines):
                 for c, col in enumerate(row):
                     if col in ["v", "^", ">", "<", "x"]:
-                        roadList.append((r,c))
+                        if(col != "x"):
+                            self.roadList.append((c, self.height - r - 1))
                         agent = Road(f"r{r*self.width+c}", self, dataDictionary[col])
                         self.grid.place_agent(agent, (c, self.height - r - 1))
-                    elif col in ["S", "s"]:
-                        agent = Traffic_Light(f"tl{r*self.width+c}", self, False if col == "S" else True, int(dataDictionary[col]))
+                    elif col in ["O", "R", "U", "L"]:
+                        tf = False
+                        if(col == "O" or col == "U"):
+                            tf = True
+                        agent = Traffic_Light(f"tl{r*self.width+c}", self, tf, 4, col)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.schedule.add(agent)
                     elif col == "#":
@@ -44,15 +50,18 @@ class RandomModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col == "D":
                         agent = Destination(f"d{r*self.width+c}", self)
-                        destinationsList.append((r,c))
+                        self.destinationsList.append((c, self.height - r - 1))
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
-        carPos = (random.choice(roadList))
-        agent = Car(1001, (random.choice(destinationsList)), carPos, self)
-        self.grid.place_agent(agent, carPos)
-        self.schedule.add(agent)
+        for i in range (N):
+            carPos = (random.choice(self.roadList))
+            self.roadList.remove(carPos)
+            agent = Car(100 + i, (random.choice(self.destinationsList)), carPos, self)
+            self.grid.place_agent(agent, carPos)
+            self.schedule.add(agent)
+            self.ids.add(100 + i)
 
-        self.num_agents = N
+
         self.running = True 
 
     def step(self):
@@ -64,7 +73,16 @@ class RandomModel(Model):
                 for agent in agents:
                     if isinstance(agent, Traffic_Light):
                         agent.state = not agent.state
-    def getSteps(self):
-        return self.schedule.steps
+        if self.schedule.steps % 30 == 0:
+            newId = random.randrange(0, 1000)
+            while(newId in self.ids):
+                newId = random.randrange(0, 1000)
+
+            carPos = (random.choice(self.roadList))
+            agent = Car(newId, (random.choice(self.destinationsList)), carPos, self)
+            self.ids.add(newId)
+            self.grid.place_agent(agent, carPos)
+            self.schedule.add(agent)
+
 
 
